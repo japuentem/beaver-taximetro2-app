@@ -1,20 +1,81 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+<ion-header>
+  <ion-toolbar class="title-container" mode="md">
+    <ion-buttons slot="start">
+      <ion-title>{{ nuevaFecha }}</ion-title>
+    </ion-buttons>
+
+    <ion-title>Taximetro</ion-title>
+    <ion-buttons slot="end">
+      <ion-title>{{ currentTime | date:'hh:mm:ss a' }}</ion-title>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="container">
+  <div class="grid-container">
+    <div class="content-container">
+      <div class="button-container centered">
+        <ion-button
+          color="success"
+          expand="full"
+          (click)="iniciarViaje()"
+          [disabled]="viajeIniciado || viajeTerminado"
+        >
+          Iniciar
+        </ion-button>
+        <ion-button
+          color="danger"
+          expand="full"
+          (click)="terminarViaje()"
+          [disabled]="viajeTerminado || !viajeIniciado"
+        >
+          Terminar
+        </ion-button>
+        <ion-button
+          expand="full"
+          (click)="reiniciarTaximetro()"
+          [disabled]="viajeIniciado"
+        >
+          Reiniciar
+        </ion-button>
+      </div>
+    </div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+    <div class="distance-container">
+      <p>Recorrido: {{ calcularDistanciaRecorrida() }} metros</p>
+    </div>
+
+    <!--     <div class="coordinates-container">
+      <div>anterior: {{ this.lastLatitude }}, {{ this.lastLongitude }}</div>
+      <div>actual: {{ this.currentLatitude }}, {{ this.currentLongitude }}</div>
+    </div>
+ -->
+    <div *ngIf="!ubicacionActivada" class="message-container">
+      <p class="message-text">
+        Es necesario activar la ubicación en tu dispositivo.
+      </p>
+    </div>
+
+    <div class="cost-container">
+      <!--       <p
+        class="cost-label"
+        [ngStyle]="{ color: cobroPorDistancia ? 'green' : 'black' }"
+      >
+        Distancia
+      </p>
+      <p
+        class="cost-label"
+        [ngStyle]="{ color: cobroPorTiempo ? 'green' : 'black' }"
+      >
+        Tiempo
+      </p> -->
+      <h2 class="cost-text">{{ costo_viaje.toFixed(2) }}</h2>
+    </div>
+    <div class="payment-container">
+      <p class="cost-label">
+        Distancia <span *ngIf="cobroPorDistancia">*</span>
+      </p>
+      <p class="cost-label">Tiempo <span *ngIf="cobroPorTiempo">*</span></p>
+    </div>
   </div>
 </ion-content>
