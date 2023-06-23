@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "Taximetro2App"
+    namespace "Taximetro2"
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.beaversoft.taximetro2app"
+        applicationId "com.beaversoft.taximetro2"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -18,7 +18,7 @@ android {
     }
     applicationVariants.all { variant ->
       variant.outputs.all {
-        outputFileName = "taximetro2-app.apk"
+        outputFileName = "taximetro.apk"
       }
     }
     buildTypes {

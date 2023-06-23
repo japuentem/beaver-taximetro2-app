@@ -1,3 +1,4 @@
+<!--
 <ion-header>
   <ion-toolbar class="title-container" mode="md">
     <ion-buttons slot="start">
@@ -9,17 +10,46 @@
       <ion-title>{{ currentTime | date:'hh:mm:ss a' }}</ion-title>
     </ion-buttons>
   </ion-toolbar>
-</ion-header>
+</ion-header> -->
 
-<ion-content class="container">
+<ion-content class="main-container">
+  <div class="title-container">
+    <div class="title-text">
+      <p>TAXIMETRO</p>
+    </div>
+  </div>
+  <div class="datetime-container">
+    <div class="datetime-text"><p>{{ nuevaFecha }}</p></div>
+    <div class="datetime-text">
+      <p>{{ currentTime | date:'hh:mm:ss a' }}</p>
+    </div>
+  </div>
+  <!--   <ion-toolbar>
+    <ion-title class="title-text">Taximetro</ion-title>
+  </ion-toolbar>
+  <ion-toolbar class="title-container" mode="md">
+    <ion-buttons slot="start">
+      <ion-title class="title-text">{{ nuevaFecha }}</ion-title>
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-title class="title-text"
+        >{{ currentTime | date:'hh:mm:ss a' }}</ion-title
+      >
+    </ion-buttons>
+  </ion-toolbar>
+ -->
+  <!-- contenedor principal sin radio button -->
   <div class="grid-container">
-    <div class="content-container">
-      <div class="button-container centered">
+    <!-- <div class="content-container"> -->
+    <!-- contenedor de botones -->
+    <div>
+      <div class="button-container">
         <ion-button
           color="success"
           expand="full"
           (click)="iniciarViaje()"
-          [disabled]="viajeIniciado || viajeTerminado"
+          [disabled]="viajeIniciado || viajeTerminado || !taxiSelected"
         >
           Iniciar
         </ion-button>
@@ -40,21 +70,38 @@
         </ion-button>
       </div>
     </div>
-
-    <div class="distance-container">
+    <!-- </div> -->
+    <!--     <div class="distance-container">
       <p>Recorrido: {{ calcularDistanciaRecorrida() }} metros</p>
+      <p>{{ tipoDia()?'Diurno':'Noche' }}</p>
     </div>
 
-    <!--     <div class="coordinates-container">
-      <div>anterior: {{ this.lastLatitude }}, {{ this.lastLongitude }}</div>
-      <div>actual: {{ this.currentLatitude }}, {{ this.currentLongitude }}</div>
-    </div>
- -->
     <div *ngIf="!ubicacionActivada" class="message-container">
       <p class="message-text">
         Es necesario activar la ubicación en tu dispositivo.
       </p>
+    </div> -->
+    <!-- contenedor de mensajes -->
+    <div class="message-container">
+      <div class="message-text">
+        <p
+          class="message-text"
+          [ngStyle]="{ color: ubicacionActivada ? 'greenyellow' : 'darkred' }"
+        >
+          GPS
+        </p>
+        <p class="payment-label-right">
+          {{ tipoTarifa() ? 'Tarifa día' : 'Tarifa nocturna' | lowercase }}
+        </p>
+      </div>
     </div>
+
+    <!-- <div class="total-container" *ngIf="viajeTerminado">
+       <p class="total">Distancia total: {{ recorridoTotal }} km</p>
+      <p class="total" id="tiempoTotal">
+        Tiempo total: {{ duracionRecorrido }}
+      </p>
+    </div>-->
 
     <div class="cost-container">
       <!--       <p
@@ -70,12 +117,68 @@
         Tiempo
       </p> -->
       <h2 class="cost-text">{{ costo_viaje.toFixed(2) }}</h2>
+      <div class="speed-container">
+        <div class="speed-text">Velocidad: {{velocidad.toFixed(2)}} km/hr</div>
+      </div>
     </div>
+    <!-- <div class="payment-container" *ngIf="viajeTerminado || this.lastDistance"> -->
     <div class="payment-container">
-      <p class="cost-label">
-        Distancia <span *ngIf="cobroPorDistancia">*</span>
-      </p>
-      <p class="cost-label">Tiempo <span *ngIf="cobroPorTiempo">*</span></p>
+      <div class="payment-text">
+        <p class="payment-label-left" *ngIf="viajeIniciado || viajeTerminado">
+          <span *ngIf="viajeIniciado">{{lastDistance}} mt</span>
+          <span *ngIf="viajeTerminado">{{distanciaRecorrida}} km</span>
+        </p>
+        <p class="payment-label-right" *ngIf="viajeIniciado || viajeTerminado">
+          <span>{{tiempoRecorrido}}</span>
+        </p>
+        <div style="clear: both"></div>
+      </div>
+      <div class="payment-text">
+        <p class="payment-label-left">
+          Distancia <span *ngIf="cobroPorDistancia">*</span>
+        </p>
+        <p class="payment-label-right">
+          Tiempo <span *ngIf="cobroPorTiempo">*</span>
+        </p>
+        <div style="clear: both"></div>
+      </div>
     </div>
+  </div>
+
+  <div class="radio-container">
+    <ion-list>
+      <ion-radio-group [(ngModel)]="taxiSelected" (ionChange)="onRadioSelect()">
+        <ion-list-header>
+          <ion-label class="label-radio-title"
+            >Tipo de taxi que abordo</ion-label
+          >
+        </ion-list-header>
+
+        <ion-item>
+          <ion-radio
+            class="label-radio"
+            value="libre"
+            [disabled]="viajeIniciado"
+            >Libre</ion-radio
+          >
+        </ion-item>
+        <ion-item>
+          <ion-radio
+            class="label-radio"
+            value="sitio"
+            [disabled]="viajeIniciado"
+            >Sitio</ion-radio
+          >
+        </ion-item>
+        <ion-item>
+          <ion-radio
+            class="label-radio"
+            value="radio_taxi"
+            [disabled]="viajeIniciado"
+            >Radio Taxi</ion-radio
+          >
+        </ion-item>
+      </ion-radio-group>
+    </ion-list>
   </div>
 </ion-content>

@@ -2,55 +2,102 @@ ion-content {
   --ion-background-color: black;
 }
 
-.container {
+.main-container {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: 1fr 1fr 3fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr 2fr 1fr 2fr;
   gap: 10px 10px;
   grid-template-areas:
-    "content-container"
-    "distance-container"
+    // "content-container"
+
+    "title-container"
+    "datetime-container"
+    "button-container"
+    // "distance-container"
+    "message-container"
     "cost-container"
-    "coordinates-container"
-    "payment-container";
+    // "coordinates-container"
+    "payment-container"
+    // "category-container"
+    "radio-container";
   justify-items: stretch;
   align-items: stretch;
 }
 
-.content-container {
-  grid-area: content-container;
+.title-container {
+  grid-area: title-container;
 }
-
-.distance-container {
-  grid-area: distance-container;
+.datetime-container {
+  grid-area: datetime-container;
 }
-
+.button-container {
+  grid-area: button-container;
+}
+.message-container {
+  grid-area: message-container;
+}
 .cost-container {
   grid-area: cost-container;
 }
-
-.coordinates-container {
+/* .coordinates-container {
   grid-area: coordinates-container;
-}
+} */
 .payment-container {
   grid-area: payment-container;
 }
+/* .category-container {
+  grid-area: category-container;
+} */
+.radio-container {
+  grid-area: radio-container;
+}
 
+// Inicia estilos css
 .title-container {
   display: flex;
+  justify-content: center;
   flex-direction: row;
-  align-items: center;
+  width: 100%;
+  background-color: #a3d4ff;
+}
+.title-text {
+  color: #b46e5a;
+  font-size: 30px;
+  font-family: "TAXI", "Roboto";
+}
+
+.datetime-container {
+  display: flex;
   justify-content: space-between;
-  padding: 0 10px;
+  flex-direction: row;
+  margin: 0 20px;
+  width: 90%;
+}
+.datetime-text {
+  color: #a3d4ff;
+  font-size: 20px;
+}
+.title-text p,
+.datetime-text p {
+  margin: 5px 0 0 0; /* Agregado para eliminar el espacio superior e inferior en el texto */
 }
 
 .button-container {
   display: flex;
-  flex-direction: row;
   justify-content: space-between;
-  margin-top: 20px;
-  padding: 0 5%;
+  flex-direction: row;
+  align-items: center;
+  margin: 20px;
   width: 90%;
+}
+
+.message-container {
+  margin: 0 20px;
+}
+.message-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .cost-container {
@@ -59,55 +106,111 @@ ion-content {
   align-items: center;
   justify-content: center;
   height: 100%;
+  margin: 0 20px;
+  border: 2px solid red;
 }
-
 .cost-text {
   color: red;
-  border: 3px solid red;
   border-radius: 10px;
-  padding: 30px;
+  padding: 10px;
   font-size: 90px;
-  font-family: "SUBWT", "Roboto"; /* Asegúrate de que la fuente "Digital" esté disponible en tu proyecto */
+  font-family: "DIGITAL", "Roboto"; /* Asegúrate de que la fuente "Digital" esté disponible en tu proyecto */
 }
 
-.cost-label {
+.speed-container {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+  color: lightsalmon;
+  width: 90%;
+}
+.speed-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: lightsalmon;
+  float: left;
+}
+
+.payment-container {
+  margin: 0 20px 20px 20px;
+}
+.payment-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.payment-label-left {
   margin: 20px;
-  color: greenyellow;
+  color: #a3d4ff;
+  float: left;
+  margin: 0;
+}
+
+.payment-label-right {
+  margin: 20px;
+  color: #a3d4ff;
+  float: right;
+  margin: 0;
+  margin-left: auto;
+  white-space: nowrap;
+  padding-left: 10px;
 }
 
 .cost-label[ngStyle^="{ color: 'green' }"] {
   color: green;
 }
 
+ion-radio {
+  --border-radius: 4px;
+  --inner-border-radius: 4px;
+
+  --color: #ddd;
+  --color-checked: #a3d4ff;
+}
+
+.radio-container {
+  margin: 20px;
+  gap: 0; /* Agregado para eliminar el espacio entre los radio buttons */
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+}
+.radio-container ion-list ion-item ion-radio {
+  padding-top: 0;
+  padding-bottom: 0;
+  margin: 0;
+  border-bottom: 2px dotted aquamarine;
+}
+
+.label-radio {
+  color: #a3d4ff;
+}
+.label-radio-title {
+  color: #b46e5a;
+  font-weight: bold;
+  text-decoration: underline;
+  font-size: large;
+}
+.radio-container ion-list {
+  padding: 0; /* Agregado para eliminar el espacio entre los elementos */
+}
+
+/* .total {
+  margin-left: auto;
+  white-space: nowrap;
+  padding-left: 10px;
+  color: lightcoral;
+}
+ */
+
 @font-face {
-  font-family: "SUBWT";
-  src: url("../../assets/fonts/SUBWT.ttf");
+  font-family: "DIGITAL";
+  src: url("../../assets/fonts/Oswald-VariableFont_wght.ttf");
 }
 
-.payment-container {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-}
-
-.message-text {
-  color: white;
-  font-weight: 10px;
-  margin: 20px;
-}
-
-.content-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.distance-container {
-  color: white;
-  margin: 20px;
-}
-
-.coordinates-container {
-  color: white;
-  margin: 20px;
+@font-face {
+  font-family: "TAXI";
+  src: url("../../assets/fonts/TaxiDriver.ttf");
 }

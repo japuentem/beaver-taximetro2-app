@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Geolocation, Position } from '@capacitor/geolocation';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 @Component({
   selector: 'app-home',
@@ -15,11 +16,15 @@ export class HomePage implements OnInit {
   costo_viaje: number = 0;
   cobroPorTiempo: boolean = false;
   cobroPorDistancia: boolean = false;
+  tarifa: number = 0;
+  aumento: number = 0;
+  isDay: boolean = false;
   // Variables relacionadas con la ubicacion
   viajeIniciado: boolean = false;
   viajeTerminado: boolean = false;
   ubicacionActivada: boolean = false;
   interval: any;
+  intervalDistance: any;
   positionInterval: any;
   currentLatitude: number = 0;
   currentLongitude: number = 0;
@@ -27,11 +32,36 @@ export class HomePage implements OnInit {
   lastLongitude: number = 0;
   lastDistance: number = 0;
   lastUpdateTime: number = 0;
+  currentSpeed: number = 0;
+  // Variable relacionada con radio button
+  radioButtonsDisabled: boolean = true;
+  taxiSelected: string | null = null;
+  // Variables relacionadas con el tiempo del recorrido
+  tiempoInicial: Date | null = null;
+  tiempoFinal: Date | null = null;
+  duracionRecorrido: number | null = null;
+  tiempoRecorrido: string = '';
+  //Variables relacionadas con la distancia del recorrido
+  inicioLatitude: number = 0;
+  inicioLongitude: number = 0;
+  finLatitude: number = 0;
+  finLongitude: number = 0;
+  distanciaRecorrida: number = 0;
+  velocidad: number = 0;
 
   constructor() {
     this.currentDate = new Date();
     this.currentTime = new Date();
     this.nuevaFecha = this.convertirFecha(this.currentDate);
+  }
+
+  onRadioSelect() {
+    console.log('Opción seleccionada:', this.taxiSelected);
+
+    // Si se seleccionó un radio button y el viaje ya ha sido iniciado
+    if (this.taxiSelected && this.viajeIniciado) {
+      this.radioButtonsDisabled = true;
+    }
   }
 
   convertirFecha(fecha: Date): string {
@@ -46,7 +76,13 @@ export class HomePage implements OnInit {
     );
   }
 
-  ngOnInit() {
+  async ngOnInit() {
+    // Show the splash for two seconds and then automatically hide it:
+    await SplashScreen.show({
+      showDuration: 2000,
+      autoHide: true,
+    });
+
     this.checkUbicacionActivada();
     this.showCurrentDate();
   }
@@ -68,11 +104,31 @@ export class HomePage implements OnInit {
     this.viajeTerminado = false;
 
     const currentHour = this.currentTime.getHours();
-    const tarifa = currentHour >= 5 && currentHour < 22 ? 8.74 : 10.48;
+    // const tarifa = currentHour >= 5 && currentHour < 22 ? 8.74 : 10.48;
 
-    this.costo_viaje = tarifa;
+    if (this.taxiSelected === 'libre') {
+      this.tarifa = currentHour >= 5 && currentHour < 22 ? 8.74 : 10.48;
+      this.aumento = currentHour >= 5 && currentHour < 22 ? 1.07 : 1.28;
+    } else if (this.taxiSelected === 'sitio') {
+      this.tarifa = currentHour >= 5 && currentHour < 22 ? 13.1 : 15.72;
+      this.aumento = currentHour >= 5 && currentHour < 22 ? 1.3 : 1.56;
+    } else if (this.taxiSelected === 'radio_taxi') {
+      this.tarifa = currentHour >= 5 && currentHour < 22 ? 27.3 : 32.76;
+      this.aumento = currentHour >= 5 && currentHour < 22 ? 1.84 : 2.21;
+    }
+    this.costo_viaje = this.tarifa;
+    this.tiempoInicial = new Date();
+
+    this.inicioLatitude = this.currentLatitude;
+    this.inicioLongitude = this.currentLongitude;
 
     this.iniciarTimers();
+    this.calcularVelocidad();
+  }
+
+  tipoTarifa(): boolean {
+    const currentHour = this.currentTime.getHours();
+    return currentHour >= 5 && currentHour < 22 ? (this.isDay = true) : false;
   }
 
   iniciarTimers() {
@@ -87,11 +143,42 @@ export class HomePage implements OnInit {
   }
 
   terminarViaje() {
-    this.viajeTerminado = true;
-    this.viajeIniciado = false;
-
     clearInterval(this.interval);
+    clearInterval(this.intervalDistance);
     clearInterval(this.positionInterval);
+    this.viajeIniciado = false;
+    this.viajeTerminado = true;
+
+    this.tiempoViaje();
+
+    this.finLatitude = this.currentLatitude;
+    this.finLongitude = this.currentLongitude;
+
+    // this.calcularDistanciaRecorrida();
+  }
+
+  tiempoViaje() {
+    this.tiempoFinal = new Date();
+
+    if (this.tiempoInicial != null) {
+      this.duracionRecorrido =
+        this.tiempoFinal.getTime() - this.tiempoInicial.getTime();
+
+      const duracionEnSegundos = this.duracionRecorrido / 1000;
+      const horas = Math.floor(duracionEnSegundos / 3600);
+      const minutos = Math.floor((duracionEnSegundos % 3600) / 60);
+      const segundos = Math.floor(duracionEnSegundos % 60);
+
+      const horasFormateadas = horas.toString().padStart(2, '0');
+      const minutosFormateados = minutos.toString().padStart(2, '0');
+      const segundosFormateados = segundos.toString().padStart(2, '0');
+
+      this.tiempoRecorrido =
+        horasFormateadas + ':' + minutosFormateados + ':' + segundosFormateados;
+      console.log(
+        horasFormateadas + ':' + minutosFormateados + ':' + segundosFormateados
+      );
+    }
   }
 
   getCurrentPosition() {
@@ -142,33 +229,82 @@ export class HomePage implements OnInit {
     return degrees * (Math.PI / 180);
   }
 
-  actualizarCostoPorTiempo() {
-    const currentHour = this.currentTime.getHours();
+  obtenerTiempo(): number {
     const currentTime = new Date().getTime();
     const elapsedTime = currentTime - this.lastUpdateTime;
 
-    if (elapsedTime >= 44980) {
-      this.costo_viaje += currentHour >= 5 && currentHour < 22 ? 1.07 : 1.28;
+    return elapsedTime;
+  }
+
+  actualizarCostoPorTiempo() {
+    const currentHour = this.currentTime.getHours();
+    const elTi = this.obtenerTiempo();
+
+    if (elTi >= 44980) {
+      if (this.taxiSelected === 'libre') {
+        // this.tarifa = currentHour >= 5 && currentHour < 22 ? 8.74 : 10.48;
+        this.aumento = currentHour >= 5 && currentHour < 22 ? 1.07 : 1.28;
+      } else if (this.taxiSelected === 'sitio') {
+        // this.tarifa = currentHour >= 5 && currentHour < 22 ? 13.1 : 15.72;
+        this.aumento = currentHour >= 5 && currentHour < 22 ? 1.3 : 1.56;
+      } else if (this.taxiSelected === 'radio_taxi') {
+        // this.tarifa = currentHour >= 5 && currentHour < 22 ? 27.3 : 32.76;
+        this.aumento = currentHour >= 5 && currentHour < 22 ? 1.84 : 2.21;
+      }
+
+      this.costo_viaje += this.aumento;
       this.cobroPorTiempo = true;
       this.cobroPorDistancia = false;
       clearInterval(this.interval);
       clearInterval(this.positionInterval);
+      this.aumento = 0;
       this.iniciarTimers();
+      this.lastUpdateTime = elTi;
     }
-    this.lastUpdateTime = currentTime;
+  }
+  /*
+  obtenerNumeroRandom(min: number, max: number): number {
+    // const min = 240;
+    // const max = 260;
+    const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+    return randomNumber;
+  }
+ */
+  calcularVelocidad() {
+    this.intervalDistance = setInterval(() => {
+      // const distancia = this.obtenerNumeroRandom(10, 120);
+      this.velocidad = (this.lastDistance * 0.001) / 0.00028;
+    }, 1000);
   }
 
   actualizarCostoPorDistancia() {
     this.getCurrentPosition();
-    this.calcularDistanciaRecorrida();
-
+    // this.calcularDistanciaRecorrida();
+    /*
+    const numeroRandom = this.obtenerNumeroRandom(240, 260);
+    console.log(numeroRandom);
+    this.lastDistance = numeroRandom;
+ */
     const currentHour = this.currentTime.getHours();
-    if (this.lastDistance >= 250) {
-      this.costo_viaje += currentHour >= 5 && currentHour < 22 ? 1.07 : 1.28;
+
+    this.distanciaRecorrida += this.lastDistance;
+    if (this.lastDistance >= 240) {
+      if (this.taxiSelected === 'libre') {
+        // this.tarifa = currentHour >= 5 && currentHour < 22 ? 8.74 : 10.48;
+        this.aumento = currentHour >= 5 && currentHour < 22 ? 1.07 : 1.28;
+      } else if (this.taxiSelected === 'sitio') {
+        // this.tarifa = currentHour >= 5 && currentHour < 22 ? 13.1 : 15.72;
+        this.aumento = currentHour >= 5 && currentHour < 22 ? 1.3 : 1.56;
+      } else if (this.taxiSelected === 'radio_taxi') {
+        // this.tarifa = currentHour >= 5 && currentHour < 22 ? 27.3 : 32.76;
+        this.aumento = currentHour >= 5 && currentHour < 22 ? 1.84 : 2.21;
+      }
+      this.costo_viaje += this.aumento;
       this.cobroPorTiempo = false;
       this.cobroPorDistancia = true;
       clearInterval(this.interval);
       clearInterval(this.positionInterval);
+      this.aumento = 0;
       this.iniciarTimers();
     }
   }
@@ -185,7 +321,7 @@ export class HomePage implements OnInit {
       this.lastDistance = distance;
     }
 
-    return distance;
+    return Number(this.lastDistance.toFixed(2));
   }
 
   /*   async turnOnLocation() {
@@ -206,21 +342,24 @@ export class HomePage implements OnInit {
     this.lastDistance = 0;
 
     clearInterval(this.interval);
+    clearInterval(this.intervalDistance);
     clearInterval(this.positionInterval);
 
     this.cobroPorTiempo = false;
     this.cobroPorDistancia = false;
+
+    this.taxiSelected = null;
   }
 
   showCurrentDate() {
-    this.currentTime = new Date();
+    // this.currentTime = new Date();
     setInterval(() => {
       this.currentTime = new Date();
     }, 1000);
   }
 
-  diasSemana: string[] = ['1', '2', '3', '4', '5', '6', '7'];
-  diasSemanaEsp: string[] = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  diasSemana: string[] = ['0', '1', '2', '3', '4', '5', '6'];
+  diasSemanaEsp: string[] = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   mesesAnio: string[] = [
     '0',
@@ -234,7 +373,7 @@ export class HomePage implements OnInit {
     '8',
     '9',
     '10',
-    '1',
+    '11',
   ];
   mesesAnioEsp: string[] = [
     'Ene',
@@ -272,5 +411,17 @@ export class HomePage implements OnInit {
     }
 
     return nuevoMes;
+  }
+
+  formatTime(totalTime: number): string {
+    const hours = Math.floor(totalTime / 3600);
+    const minutes = Math.floor((totalTime % 3600) / 60);
+    const seconds = totalTime % 60;
+
+    const hoursStr = hours.toString().padStart(2, '0');
+    const minutesStr = minutes.toString().padStart(2, '0');
+    const secondsStr = seconds.toString().padStart(2, '0');
+
+    return `${hoursStr}:${minutesStr}:${secondsStr}`;
   }
 }
